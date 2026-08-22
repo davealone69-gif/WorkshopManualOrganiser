@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Context menu for long-press on a manual item -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/ctx_open" android:title="Open" />
+    <item android:id="@+id/ctx_edit" android:title="Edit Structure" />
+    <item android:id="@+id/ctx_export" android:title="Export" />
+    <item android:id="@+id/ctx_delete" android:title="Delete" />
+</menu>

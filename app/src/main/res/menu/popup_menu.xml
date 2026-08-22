@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Popup menu for additional actions -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/popup_camera" android:title="Take Photo" />
+    <item android:id="@+id/popup_gallery" android:title="From Gallery" />
+    <item android:id="@+id/popup_pdf" android:title="Import PDF" />
+    <item android:id="@+id/popup_ai_help" android:title="AI Technical Help" />
+</menu>

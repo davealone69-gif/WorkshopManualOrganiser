@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Workshop Manual Organiser - Main Options Menu -->
+<!-- Easy to add/remove items later -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_scan"
+        android:icon="@android:drawable/ic_menu_camera"
+        android:title="Scan Manual"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_upload"
+        android:icon="@android:drawable/ic_menu_upload"
+        android:title="Upload"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_vin_decoder"
+        android:title="VIN Decoder" />
+
+    <item
+        android:id="@+id/action_wiring"
+        android:title="Wiring Diagrams" />
+
+    <item
+        android:id="@+id/action_ai_sort"
+        android:title="AI Sort &amp; Structure" />
+
+    <item
+        android:id="@+id/action_about"
+        android:title="About / Credits" />
+</menu>
