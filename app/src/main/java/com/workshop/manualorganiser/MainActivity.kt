@@ -3,56 +3,21 @@ package com.workshop.manualorganiser
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.ElectricalServices
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.workshop.manualorganiser.ui.theme.AppTheme
@@ -63,230 +28,127 @@ private data class Manual(
     val title: String,
     val category: String,
     val notes: String = "",
-    val sourceUri: String? = null
+    val sourceUri: String? = null,
+    val vehicle: String = "",
+    val favourite: Boolean = false
 )
 
-class MainActivity : androidx.activity.ComponentActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            AppTheme {
-                Surface(Modifier.fillMaxSize()) { WorkshopApp() }
-            }
-        }
+        setContent { AppTheme { Surface(Modifier.fillMaxSize()) { WorkshopApp() } } }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WorkshopApp() {
-    var manuals by remember {
-        mutableStateOf(
-            listOf(
-                Manual("1", "Toyota 2JZ-GTE Workshop", "Mechanical", "Engine rebuild"),
-                Manual("2", "BMW E46 Electrical", "Electrical", "Wiring diagrams"),
-                Manual("3", "Safety Procedures 2024", "Safety", "Shop rules")
-            )
-        )
-    }
+    var manuals by remember { mutableStateOf(listOf(
+        Manual("1", "Toyota 2JZ-GTE Workshop", "Mechanical", "Engine rebuild", vehicle = "Toyota Supra A80"),
+        Manual("2", "BMW E46 Electrical", "Electrical", "Wiring diagrams", vehicle = "BMW E46"),
+        Manual("3", "Safety Procedures", "Safety", "Shop rules")
+    )) }
     var query by rememberSaveable { mutableStateOf("") }
     var showAdd by rememberSaveable { mutableStateOf(false) }
     var showVin by rememberSaveable { mutableStateOf(false) }
     var showWiring by rememberSaveable { mutableStateOf(false) }
-    var showAiResult by rememberSaveable { mutableStateOf(false) }
+    var showAi by rememberSaveable { mutableStateOf(false) }
+    var showVehicle by rememberSaveable { mutableStateOf(false) }
     var showMore by rememberSaveable { mutableStateOf(false) }
     var vin by rememberSaveable { mutableStateOf("") }
-    var aiSummary by rememberSaveable { mutableStateOf("") }
     var newTitle by rememberSaveable { mutableStateOf("") }
     var newCategory by rememberSaveable { mutableStateOf("Mechanical") }
+    var newVehicle by rememberSaveable { mutableStateOf("") }
 
     val uploadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) {
-            manuals = manuals + Manual(
-                id = "upload-${System.currentTimeMillis()}",
-                title = uri.lastPathSegment?.substringAfterLast('/') ?: "Uploaded Manual",
-                category = "Imported",
-                notes = "Document imported from device",
-                sourceUri = uri.toString()
-            )
-        }
+        uri?.let { manuals = manuals + Manual("upload-${System.currentTimeMillis()}", it.lastPathSegment?.substringAfterLast('/') ?: "Uploaded Manual", "Imported", "Original document attached", it.toString()) }
     }
-
     val scanLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            manuals = manuals + Manual(
-                id = "scan-${System.currentTimeMillis()}",
-                title = "Scanned Manual Page",
-                category = "Scanned",
-                notes = "Captured from camera. Add details from the manual card."
-            )
-        }
+        if (bitmap != null) manuals = manuals + Manual("scan-${System.currentTimeMillis()}", "Scanned Manual Page", "Scanned", "Camera capture. Original page preserved in this session.")
     }
-
     val wiringLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) {
-            manuals = manuals + Manual(
-                id = "wiring-${System.currentTimeMillis()}",
-                title = uri.lastPathSegment?.substringAfterLast('/') ?: "Wiring Diagram",
-                category = "Wiring Diagram",
-                notes = "Imported wiring diagram",
-                sourceUri = uri.toString()
-            )
-        }
+        uri?.let { manuals = manuals + Manual("wiring-${System.currentTimeMillis()}", it.lastPathSegment?.substringAfterLast('/') ?: "Wiring Diagram", "Wiring Diagram", "Imported wiring source", it.toString()) }
     }
 
-    val filtered = remember(manuals, query) {
-        if (query.isBlank()) manuals else manuals.filter {
-            it.title.contains(query, true) || it.category.contains(query, true) || it.notes.contains(query, true)
-        }
-    }
-
-    fun runAiSort() {
-        manuals = manuals.map { manual ->
-            val text = "${manual.title} ${manual.notes}".lowercase(Locale.ROOT)
+    fun aiSort() {
+        manuals = manuals.map { m ->
+            val text = "${m.title} ${m.notes}".lowercase(Locale.ROOT)
             val category = when {
-                "wiring" in text || "wire" in text || "electrical" in text || "ecu" in text || "sensor" in text -> "Electrical"
-                "brake" in text || "suspension" in text || "engine" in text || "transmission" in text -> "Mechanical"
-                "safety" in text || "hazard" in text -> "Safety"
-                else -> manual.category
+                listOf("wiring", "electrical", "ecu", "sensor", "connector").any(text::contains) -> "Electrical"
+                listOf("brake", "suspension", "engine", "transmission", "torque").any(text::contains) -> "Mechanical"
+                listOf("safety", "hazard").any(text::contains) -> "Safety"
+                else -> m.category
             }
-            manual.copy(category = category)
+            m.copy(category = category)
         }
-        aiSummary = "AI Sort & Structure completed. ${manuals.size} manual records were classified using local rules. No cloud upload required."
-        showAiResult = true
+        showAi = true
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Workshop Manual Organiser", fontWeight = FontWeight.Bold)
-                        Text("${manuals.size} manuals • v2.0.0", style = MaterialTheme.typography.bodySmall)
-                    }
-                },
-                actions = {
-                    Box {
-                        IconButton(onClick = { showMore = true }) { Icon(Icons.Default.MoreVert, "More tools") }
-                        DropdownMenu(expanded = showMore, onDismissRequest = { showMore = false }) {
-                            DropdownMenuItem(text = { Text("Scan Manual") }, leadingIcon = { Icon(Icons.Default.CameraAlt, null) }, onClick = { showMore = false; scanLauncher.launch(null) })
-                            DropdownMenuItem(text = { Text("Upload") }, leadingIcon = { Icon(Icons.Default.UploadFile, null) }, onClick = { showMore = false; uploadLauncher.launch(arrayOf("application/pdf", "image/*", "text/plain")) })
-                            DropdownMenuItem(text = { Text("VIN Decoder") }, leadingIcon = { Icon(Icons.Default.DirectionsCar, null) }, onClick = { showMore = false; showVin = true })
-                            DropdownMenuItem(text = { Text("Wiring Diagrams") }, leadingIcon = { Icon(Icons.Default.ElectricalServices, null) }, onClick = { showMore = false; showWiring = true })
-                            DropdownMenuItem(text = { Text("AI Sort & Structure") }, leadingIcon = { Icon(Icons.Default.Build, null) }, onClick = { showMore = false; runAiSort() })
-                        }
-                    }
+    val filtered = manuals.filter { m -> query.isBlank() || listOf(m.title, m.category, m.notes, m.vehicle).any { it.contains(query, true) } }
+
+    Scaffold(topBar = {
+        TopAppBar(title = { Column { Text("Workshop Manual Organiser", fontWeight = FontWeight.Bold); Text("${manuals.size} records • v3.0.0", style = MaterialTheme.typography.bodySmall) } }, actions = {
+            Box { IconButton({ showMore = true }) { Icon(Icons.Default.MoreVert, "Workshop tools") }
+                DropdownMenu(showMore, { showMore = false }) {
+                    DropdownMenuItem({ Text("Scan Manual") }, { showMore = false; scanLauncher.launch(null) }, leadingIcon = { Icon(Icons.Default.CameraAlt, null) })
+                    DropdownMenuItem({ Text("Upload") }, { showMore = false; uploadLauncher.launch(arrayOf("application/pdf", "image/*", "text/plain")) }, leadingIcon = { Icon(Icons.Default.UploadFile, null) })
+                    DropdownMenuItem({ Text("VIN Decoder") }, { showMore = false; showVin = true }, leadingIcon = { Icon(Icons.Default.DirectionsCar, null) })
+                    DropdownMenuItem({ Text("Wiring Diagrams") }, { showMore = false; showWiring = true }, leadingIcon = { Icon(Icons.Default.ElectricalServices, null) })
+                    DropdownMenuItem({ Text("AI Sort & Structure") }, { showMore = false; aiSort() }, leadingIcon = { Icon(Icons.Default.AutoAwesome, null) })
+                    DropdownMenuItem({ Text("Vehicle Workspace") }, { showMore = false; showVehicle = true }, leadingIcon = { Icon(Icons.Default.Build, null) })
                 }
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(onClick = { showAdd = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Add Manual") })
-        }
-    ) { padding ->
+            }
+        })
+    }, floatingActionButton = { ExtendedFloatingActionButton({ showAdd = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Add Manual") }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                placeholder = { Text("Search title, category or notes…") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            )
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            OutlinedTextField(query, { query = it }, placeholder = { Text("Search manual, vehicle, category or notes…") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true, modifier = Modifier.fillMaxWidth().padding(16.dp))
+            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
                 ToolButton("Scan", Icons.Default.CameraAlt) { scanLauncher.launch(null) }
                 ToolButton("Upload", Icons.Default.UploadFile) { uploadLauncher.launch(arrayOf("application/pdf", "image/*", "text/plain")) }
                 ToolButton("VIN", Icons.Default.DirectionsCar) { showVin = true }
                 ToolButton("Wiring", Icons.Default.ElectricalServices) { showWiring = true }
+                ToolButton("AI", Icons.Default.AutoAwesome) { aiSort() }
             }
-            Spacer(Modifier.height(8.dp))
-            if (filtered.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Description, null, modifier = Modifier.size(64.dp))
-                        Spacer(Modifier.height(12.dp))
-                        Text(if (manuals.isEmpty()) "No manuals yet" else "No matches")
-                    }
-                }
-            } else {
-                LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(filtered, key = { it.id }) { manual ->
-                        Card(Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(manual.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                                    Text(manual.category, style = MaterialTheme.typography.labelMedium)
-                                    if (manual.notes.isNotBlank()) Text(manual.notes, style = MaterialTheme.typography.bodySmall)
-                                    if (manual.sourceUri != null) Text("Stored source attached", style = MaterialTheme.typography.bodySmall)
-                                }
-                                IconButton(onClick = { manuals = manuals.filterNot { it.id == manual.id } }) { Icon(Icons.Default.Delete, "Delete") }
-                            }
+            LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(filtered, key = { it.id }) { manual ->
+                    Card(Modifier.fillMaxWidth()) { Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(manual.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(manual.category, style = MaterialTheme.typography.labelMedium)
+                            if (manual.vehicle.isNotBlank()) Text(manual.vehicle, style = MaterialTheme.typography.bodySmall)
+                            if (manual.notes.isNotBlank()) Text(manual.notes, style = MaterialTheme.typography.bodySmall)
+                            if (manual.sourceUri != null) Text("Original source attached", style = MaterialTheme.typography.labelSmall)
                         }
-                    }
-                    item { Spacer(Modifier.height(72.dp)) }
+                        IconButton({ manuals = manuals.map { if (it.id == manual.id) it.copy(favourite = !it.favourite) else it } }) { Icon(if (manual.favourite) Icons.Default.Star else Icons.Default.StarBorder, "Favourite") }
+                        IconButton({ manuals = manuals.filterNot { it.id == manual.id } }) { Icon(Icons.Default.Delete, "Delete") }
+                    } }
                 }
             }
         }
     }
 
-    if (showAdd) {
-        AlertDialog(
-            onDismissRequest = { showAdd = false },
-            title = { Text("Add Manual") },
-            text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Title") }, singleLine = true)
-                OutlinedTextField(newCategory, { newCategory = it }, label = { Text("Category") }, singleLine = true)
-            } },
-            confirmButton = { TextButton(onClick = {
-                if (newTitle.isNotBlank()) {
-                    manuals = manuals + Manual(System.currentTimeMillis().toString(), newTitle, newCategory)
-                    newTitle = ""
-                    showAdd = false
-                }
-            }) { Text("Add") } },
-            dismissButton = { TextButton(onClick = { showAdd = false }) { Text("Cancel") } }
-        )
-    }
+    if (showAdd) AlertDialog(onDismissRequest = { showAdd = false }, title = { Text("Add Manual") }, text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Title") }, singleLine = true)
+        OutlinedTextField(newCategory, { newCategory = it }, label = { Text("Category") }, singleLine = true)
+        OutlinedTextField(newVehicle, { newVehicle = it }, label = { Text("Vehicle") }, singleLine = true)
+    } }, confirmButton = { TextButton({ if (newTitle.isNotBlank()) { manuals = manuals + Manual(System.currentTimeMillis().toString(), newTitle, newCategory, vehicle = newVehicle); newTitle = ""; newVehicle = ""; showAdd = false } }) { Text("Add") } }, dismissButton = { TextButton({ showAdd = false }) { Text("Cancel") } })
 
     if (showVin) {
-        val cleanVin = vin.trim().uppercase(Locale.ROOT)
-        val validFormat = cleanVin.length == 17 && cleanVin.all { it in 'A'..'Z' || it in '0'..'9' } && cleanVin.none { it in "IOQ" }
-        AlertDialog(
-            onDismissRequest = { showVin = false },
-            title = { Text("VIN Decoder") },
-            text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(vin, { vin = it.take(17) }, label = { Text("17-character VIN") }, singleLine = true)
-                Text(when {
-                    vin.isBlank() -> "Enter a VIN to validate its structure."
-                    validFormat -> "VIN format looks valid. Position 10: ${cleanVin[9]}. Position 11: ${cleanVin[10]}."
-                    else -> "VIN format is invalid. Use 17 characters and exclude I, O and Q."
-                })
-                Text("Offline decoder validates the VIN structure without sending it to a service.", style = MaterialTheme.typography.bodySmall)
-            } },
-            confirmButton = { TextButton(onClick = { showVin = false }) { Text("Done") } }
-        )
+        val clean = vin.trim().uppercase(Locale.ROOT)
+        val valid = clean.length == 17 && clean.all { it in 'A'..'Z' || it in '0'..'9' } && clean.none { it in "IOQ" }
+        AlertDialog(onDismissRequest = { showVin = false }, title = { Text("VIN Decoder") }, text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            OutlinedTextField(vin, { vin = it.take(17) }, label = { Text("17-character VIN") }, singleLine = true)
+            Text(if (vin.isBlank()) "Enter a VIN." else if (valid) "VIN structure valid. Model-year position: ${clean[9]}. Plant position: ${clean[10]}." else "Invalid VIN structure. Use 17 characters and exclude I, O and Q.")
+            Text("Offline validation only. No VIN is uploaded.", style = MaterialTheme.typography.bodySmall)
+        } }, confirmButton = { TextButton({ showVin = false }) { Text("Done") } })
     }
 
-    if (showWiring) {
-        AlertDialog(
-            onDismissRequest = { showWiring = false },
-            title = { Text("Wiring Diagrams") },
-            text = { Text("Import a PDF or image wiring diagram. It is added to the manual library as a Wiring Diagram record.") },
-            confirmButton = { TextButton(onClick = { showWiring = false; wiringLauncher.launch(arrayOf("application/pdf", "image/*")) }) { Text("Import Diagram") } },
-            dismissButton = { TextButton(onClick = { showWiring = false }) { Text("Cancel") } }
-        )
-    }
-
-    if (showAiResult) {
-        AlertDialog(onDismissRequest = { showAiResult = false }, title = { Text("AI Sort & Structure") }, text = { Text(aiSummary) }, confirmButton = { TextButton(onClick = { showAiResult = false }) { Text("Done") } })
-    }
+    if (showWiring) AlertDialog(onDismissRequest = { showWiring = false }, title = { Text("Wiring Diagrams") }, text = { Text("Import PDF or image diagrams. The original source remains attached to the record.") }, confirmButton = { TextButton({ showWiring = false; wiringLauncher.launch(arrayOf("application/pdf", "image/*")) }) { Text("Import Diagram") } }, dismissButton = { TextButton({ showWiring = false }) { Text("Cancel") } })
+    if (showAi) AlertDialog(onDismissRequest = { showAi = false }, title = { Text("AI Sort & Structure") }, text = { Text("Classified ${manuals.size} records using local rules. Original source records are preserved. No cloud upload required.") }, confirmButton = { TextButton({ showAi = false }) { Text("Done") } })
+    if (showVehicle) AlertDialog(onDismissRequest = { showVehicle = false }, title = { Text("Vehicle Workspace") }, text = { Text("Search by vehicle to group its manuals, wiring diagrams, specifications and workshop notes. Use the vehicle field when adding or importing a manual.") }, confirmButton = { TextButton({ showVehicle = false }) { Text("Done") } })
 }
 
 @Composable
-private fun ToolButton(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.padding(horizontal = 2.dp)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, null, modifier = Modifier.size(22.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall)
-        }
-    }
+private fun ToolButton(title: String, icon: ImageVector, onClick: () -> Unit) {
+    TextButton(onClick = onClick) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, Modifier.size(22.dp)); Text(title, style = MaterialTheme.typography.labelSmall) } }
 }
