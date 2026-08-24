@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Workshop Manual Organiser</string>
+    <string name="action_scan">Scan Manual</string>
+    <string name="action_upload">Upload</string>
+    <string name="action_vin_decoder">VIN Decoder</string>
+    <string name="action_wiring">Wiring Diagrams</string>
+    <string name="action_ai_sort">AI Sort &amp; Structure</string>
+    <string name="action_about">About / Credits</string>
+    <string name="ctx_open">Open</string>
+    <string name="ctx_edit">Edit Structure</string>
+    <string name="ctx_export">Export</string>
+    <string name="ctx_delete">Delete</string>
+    <string name="popup_camera">Take Photo</string>
+    <string name="popup_gallery">From Gallery</string>
+    <string name="popup_pdf">Import PDF</string>
+    <string name="popup_ai_help">AI Technical Help</string>
+    <string name="about_credit">Built by REDRUM Studios</string>
+    <string name="version">Version 1.0.0</string>
 </resources>
