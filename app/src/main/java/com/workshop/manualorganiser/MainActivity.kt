@@ -1,67 +1,91 @@
 package com.workshop.manualorganiser
 
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.ElectricalServices
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.workshop.manualorganiser.ui.theme.AppTheme
+import java.util.Locale
 
-data class Manual(val id: String, val title: String, val category: String, val notes: String = "")
+private data class Manual(
+    val id: String,
+    val title: String,
+    val category: String,
+    val notes: String = "",
+    val sourceUri: String? = null
+)
+
+private data class ToolAction(val title: String, val description: String)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                Surface(Modifier = Modifier.fillMaxSize()) {
-                    WorkshopApp(onAbout = { showAbout() })
+                Surface(Modifier.fillMaxSize()) {
+                    WorkshopApp()
                 }
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_scan -> { Toast.makeText(this, "Scan Manual", Toast.LENGTH_SHORT).show(); true }
-        R.id.action_upload -> { Toast.makeText(this, "Upload", Toast.LENGTH_SHORT).show(); true }
-        R.id.action_vin_decoder -> { Toast.makeText(this, "VIN Decoder", Toast.LENGTH_SHORT).show(); true }
-        R.id.action_wiring -> { Toast.makeText(this, "Wiring Diagrams", Toast.LENGTH_SHORT).show(); true }
-        R.id.action_ai_sort -> { Toast.makeText(this, "AI Sort & Structure", Toast.LENGTH_SHORT).show(); true }
-        R.id.action_about -> { showAbout(); true }
-        else -> super.onOptionsItemSelected(item)
-    }
-
-    private fun showAbout() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Workshop Manual Organiser")
-            .setMessage("Version 1.0.0\n\nAI-powered workshop manual manager\nScan • Upload • VIN Decoder • Wiring • AI Sorting\n\nBuilt by REDRUM Studios")
-            .setPositiveButton("OK", null).show()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WorkshopApp(onAbout: () -> Unit) {
+private fun WorkshopApp() {
     var manuals by remember {
         mutableStateOf(
             listOf(
@@ -71,15 +95,74 @@ fun WorkshopApp(onAbout: () -> Unit) {
             )
         )
     }
-    var query by remember { mutableStateOf("") }
-    var showAdd by remember { mutableStateOf(false) }
-    var newTitle by remember { mutableStateOf("") }
-    var newCategory by remember { mutableStateOf("Mechanical") }
+    var query by rememberSaveable { mutableStateOf("") }
+    var showAdd by rememberSaveable { mutableStateOf(false) }
+    var showVin by rememberSaveable { mutableStateOf(false) }
+    var showWiring by rememberSaveable { mutableStateOf(false) }
+    var showAiResult by rememberSaveable { mutableStateOf(false) }
+    var showMore by rememberSaveable { mutableStateOf(false) }
+    var vin by rememberSaveable { mutableStateOf("") }
+    var aiSummary by rememberSaveable { mutableStateOf("") }
+    var newTitle by rememberSaveable { mutableStateOf("") }
+    var newCategory by rememberSaveable { mutableStateOf("Mechanical") }
+
+    val uploadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) {
+            manuals = manuals + Manual(
+                id = "upload-${System.currentTimeMillis()}",
+                title = uri.lastPathSegment?.substringAfterLast('/') ?: "Uploaded Manual",
+                category = "Imported",
+                notes = "Document imported from device",
+                sourceUri = uri.toString()
+            )
+        }
+    }
+
+    val scanLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
+        if (bitmap != null) {
+            manuals = manuals + Manual(
+                id = "scan-${System.currentTimeMillis()}",
+                title = "Scanned Manual Page",
+                category = "Scanned",
+                notes = "Captured from camera. Add details from the manual card."
+            )
+        }
+    }
+
+    val wiringLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) {
+            manuals = manuals + Manual(
+                id = "wiring-${System.currentTimeMillis()}",
+                title = uri.lastPathSegment?.substringAfterLast('/') ?: "Wiring Diagram",
+                category = "Wiring Diagram",
+                notes = "Imported wiring diagram",
+                sourceUri = uri.toString()
+            )
+        }
+    }
 
     val filtered = remember(manuals, query) {
         if (query.isBlank()) manuals else manuals.filter {
-            it.title.contains(query, true) || it.category.contains(query, true)
+            it.title.contains(query, true) ||
+                it.category.contains(query, true) ||
+                it.notes.contains(query, true)
         }
+    }
+
+    fun runAiSort() {
+        manuals = manuals.map { manual ->
+            val text = "${manual.title} ${manual.notes}".lowercase(Locale.ROOT)
+            val category = when {
+                "wire" in text || "electrical" in text || "ecu" in text || "sensor" in text -> "Electrical"
+                "brake" in text || "suspension" in text || "engine" in text || "transmission" in text -> "Mechanical"
+                "safety" in text || "hazard" in text -> "Safety"
+                "wiring" in text -> "Wiring Diagram"
+                else -> manual.category
+            }
+            manual.copy(category = category)
+        }
+        aiSummary = "AI Sort & Structure completed. ${manuals.size} manual records were classified using local rules. No cloud upload required."
+        showAiResult = true
     }
 
     Scaffold(
@@ -88,7 +171,39 @@ fun WorkshopApp(onAbout: () -> Unit) {
                 title = {
                     Column {
                         Text("Workshop Manual Organiser", fontWeight = FontWeight.Bold)
-                        Text("${manuals.size} manuals • Built by REDRUM Studios", style = MaterialTheme.typography.bodySmall)
+                        Text("${manuals.size} manuals • v2.0.0", style = MaterialTheme.typography.bodySmall)
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { showMore = true }) { Icon(Icons.Default.MoreVert, "More tools") }
+                        DropdownMenu(expanded = showMore, onDismissRequest = { showMore = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Scan Manual") },
+                                leadingIcon = { Icon(Icons.Default.CameraAlt, null) },
+                                onClick = { showMore = false; scanLauncher.launch(null) }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Upload") },
+                                leadingIcon = { Icon(Icons.Default.UploadFile, null) },
+                                onClick = { showMore = false; uploadLauncher.launch(arrayOf("application/pdf", "image/*", "text/plain")) }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("VIN Decoder") },
+                                leadingIcon = { Icon(Icons.Default.DirectionsCar, null) },
+                                onClick = { showMore = false; showVin = true }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Wiring Diagrams") },
+                                leadingIcon = { Icon(Icons.Default.ElectricalServices, null) },
+                                onClick = { showMore = false; showWiring = true }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("AI Sort & Structure") },
+                                leadingIcon = { Icon(Icons.Default.Build, null) },
+                                onClick = { showMore = false; runAiSort() }
+                            )
+                        }
                     }
                 }
             )
@@ -105,16 +220,29 @@ fun WorkshopApp(onAbout: () -> Unit) {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("Search title or category…") },
+                placeholder = { Text("Search title, category or notes…") },
                 leadingIcon = { Icon(Icons.Default.Search, null) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             )
 
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ToolButton("Scan", Icons.Default.CameraAlt) { scanLauncher.launch(null) }
+                ToolButton("Upload", Icons.Default.UploadFile) {
+                    uploadLauncher.launch(arrayOf("application/pdf", "image/*", "text/plain"))
+                }
+                ToolButton("VIN", Icons.Default.DirectionsCar) { showVin = true }
+                ToolButton("Wiring", Icons.Default.ElectricalServices) { showWiring = true }
+            }
+
+            Spacer(Modifier.height(8.dp))
             if (filtered.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Build, null, modifier = Modifier.size(64.dp))
+                        Icon(Icons.Default.Description, null, modifier = Modifier.size(64.dp))
                         Spacer(Modifier.height(12.dp))
                         Text(if (manuals.isEmpty()) "No manuals yet" else "No matches")
                     }
@@ -125,14 +253,15 @@ fun WorkshopApp(onAbout: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(filtered, key = { it.id }) { manual ->
-                        Card(modifier = Modifier.fillMaxWidth()) {
+                        Card(Modifier.fillMaxWidth()) {
                             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
                                     Text(manual.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                                    Text(manual.category, style = MaterialTheme.typography.bodySmall)
+                                    Text(manual.category, style = MaterialTheme.typography.labelMedium)
                                     if (manual.notes.isNotBlank()) Text(manual.notes, style = MaterialTheme.typography.bodySmall)
+                                    if (manual.sourceUri != null) Text("Stored source attached", style = MaterialTheme.typography.bodySmall)
                                 }
-                                IconButton(onClick = { manuals = manuals.filter { it.id != manual.id } }) {
+                                IconButton(onClick = { manuals = manuals.filterNot { it.id == manual.id } }) {
                                     Icon(Icons.Default.Delete, "Delete")
                                 }
                             }
@@ -150,8 +279,8 @@ fun WorkshopApp(onAbout: () -> Unit) {
             title = { Text("Add Manual") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(value = newTitle, onValueChange = { newTitle = it }, label = { Text("Title") }, singleLine = true)
-                    OutlinedTextField(value = newCategory, onValueChange = { newCategory = it }, label = { Text("Category") }, singleLine = true)
+                    OutlinedTextField(newTitle, { newTitle = it }, label = { Text("Title") }, singleLine = true)
+                    OutlinedTextField(newCategory, { newCategory = it }, label = { Text("Category") }, singleLine = true)
                 }
             },
             confirmButton = {
@@ -165,5 +294,63 @@ fun WorkshopApp(onAbout: () -> Unit) {
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text("Cancel") } }
         )
+    }
+
+    if (showVin) {
+        val cleanVin = vin.trim().uppercase(Locale.ROOT)
+        val validFormat = cleanVin.length == 17 && cleanVin.all { it in 'A'..'Z' || it in '0'..'9' } && cleanVin.none { it in "IOQ" }
+        AlertDialog(
+            onDismissRequest = { showVin = false },
+            title = { Text("VIN Decoder") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(vin, { vin = it.take(17) }, label = { Text("17-character VIN") }, singleLine = true)
+                    Text(
+                        when {
+                            vin.isBlank() -> "Enter a VIN to validate its structure."
+                            validFormat -> "VIN format looks valid. Position 10: ${cleanVin[9]}. Position 11: ${cleanVin[10]}."
+                            else -> "VIN format is invalid. Use 17 characters and exclude I, O and Q."
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text("Offline decoder validates the VIN structure without sending it to a service.", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = { TextButton(onClick = { showVin = false }) { Text("Done") } }
+        )
+    }
+
+    if (showWiring) {
+        AlertDialog(
+            onDismissRequest = { showWiring = false },
+            title = { Text("Wiring Diagrams") },
+            text = { Text("Import a PDF or image wiring diagram. It is added to the manual library as a Wiring Diagram record.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showWiring = false
+                    wiringLauncher.launch(arrayOf("application/pdf", "image/*"))
+                }) { Text("Import Diagram") }
+            },
+            dismissButton = { TextButton(onClick = { showWiring = false }) { Text("Cancel") } }
+        )
+    }
+
+    if (showAiResult) {
+        AlertDialog(
+            onDismissRequest = { showAiResult = false },
+            title = { Text("AI Sort & Structure") },
+            text = { Text(aiSummary) },
+            confirmButton = { TextButton(onClick = { showAiResult = false }) { Text("Done") } }
+        )
+    }
+}
+
+@Composable
+private fun ToolButton(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    TextButton(onClick = onClick, modifier = Modifier.weight(1f)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icon, null, modifier = Modifier.size(22.dp))
+            Text(title, style = MaterialTheme.typography.labelSmall)
+        }
     }
 }
