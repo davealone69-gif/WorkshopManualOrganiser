@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Workshop Manual Organiser - Main Options Menu -->
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
         android:id="@+id/action_scan"
         android:icon="@android:drawable/ic_menu_camera"
-        android:title="Scan Manual"
-        app:showAsAction="ifRoom" />
+        android:title="Scan Manual" />
 
     <item
         android:id="@+id/action_upload"
         android:icon="@android:drawable/ic_menu_upload"
-        android:title="Upload"
-        app:showAsAction="ifRoom" />
+        android:title="Upload" />
 
     <item
         android:id="@+id/action_vin_decoder"
-        android:title="VIN Decoder"
-        app:showAsAction="never" />
+        android:title="VIN Decoder" />
 
     <item
         android:id="@+id/action_wiring"
-        android:title="Wiring Diagrams"
-        app:showAsAction="never" />
+        android:title="Wiring Diagrams" />
 
     <item
         android:id="@+id/action_ai_sort"
-        android:title="AI Sort &amp; Structure"
-        app:showAsAction="never" />
+        android:title="AI Sort &amp; Structure" />
 
     <item
         android:id="@+id/action_about"
-        android:title="About / Credits"
-        app:showAsAction="never" />
+        android:title="About / Credits" />
 </menu>
