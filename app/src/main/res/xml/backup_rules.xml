@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Full backup rules (Android 11 and below).
+
+  Everything the app stores in shared preferences may be backed up, but
+  user-imported manuals, captured pages and exports are EXCLUDED so private
+  workshop documents are never copied to a Google account.
+-->
+<full-backup-content>
+    <exclude
+        domain="file"
+        path="library/" />
+    <exclude
+        domain="file"
+        path="captures/" />
+    <exclude
+        domain="file"
+        path="exports/" />
+    <exclude
+        domain="file"
+        path="manuals.json" />
+</full-backup-content>

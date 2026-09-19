@@ -1,5 +1,6 @@
-// PERMANENT WORKING FILE — do not let AI Studio rewrite this
+// Root build configuration
 plugins {
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
 }

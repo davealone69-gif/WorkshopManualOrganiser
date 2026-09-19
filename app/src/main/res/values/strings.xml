@@ -1,20 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Workshop Manual Organiser</string>
-    <string name="action_scan">Scan Manual</string>
-    <string name="action_upload">Upload</string>
-    <string name="action_vin_decoder">VIN Decoder</string>
-    <string name="action_wiring">Wiring Diagrams</string>
-    <string name="action_ai_sort">AI Sort &amp; Structure</string>
-    <string name="action_about">About / Credits</string>
+    <string name="app_tagline">Scan · Upload · VIN · Wiring · AI Sort</string>
+    <string name="credits">Built by REDRUM Studios</string>
+    <string name="version_label">Version 1.1.0</string>
+
+    <!-- Overflow menu -->
+    <string name="menu_scan">Scan Manual</string>
+    <string name="menu_upload">Upload</string>
+    <string name="menu_vin">VIN Decoder</string>
+    <string name="menu_wiring">Wiring Diagrams</string>
+    <string name="menu_ai_sort">AI Sort &amp; Structure</string>
+    <string name="menu_ai_help">AI Technical Help</string>
+    <string name="menu_about">About / Credits</string>
+    <string name="menu_more">More options</string>
+
+    <!-- Home -->
+    <string name="home_search_hint">Search title, category, VIN or notes</string>
+    <string name="home_empty">No manuals yet. Tap “Add Manual” to start.</string>
+    <string name="home_no_matches">No manuals match your search.</string>
+    <string name="home_count">%1$d manuals • %2$d pages</string>
+    <string name="home_add">Add Manual</string>
+    <string name="home_sorted_by">Auto-sorted taxonomy: %1$s</string>
+
+    <!-- Import / capture -->
+    <string name="action_add_photo">Take Photo</string>
+    <string name="action_gallery">From Gallery</string>
+    <string name="action_import_pdf">Import PDF</string>
+    <string name="action_import_image">Import Image</string>
+    <string name="import_failed">Import failed: %1$s</string>
+    <string name="import_done">Added %1$d file(s).</string>
+    <string name="import_nothing">Nothing was imported.</string>
+
+    <!-- Manual editing -->
+    <string name="field_title">Title</string>
+    <string name="field_category">Category</string>
+    <string name="field_notes">Notes</string>
+    <string name="field_vin">VIN (optional)</string>
+    <string name="save">Save</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="edit">Edit</string>
+
+    <!-- Context actions -->
     <string name="ctx_open">Open</string>
-    <string name="ctx_edit">Edit Structure</string>
+    <string name="ctx_edit_structure">Edit Structure</string>
     <string name="ctx_export">Export</string>
     <string name="ctx_delete">Delete</string>
-    <string name="popup_camera">Take Photo</string>
-    <string name="popup_gallery">From Gallery</string>
-    <string name="popup_pdf">Import PDF</string>
-    <string name="popup_ai_help">AI Technical Help</string>
-    <string name="about_credit">Built by REDRUM Studios</string>
-    <string name="version">Version 1.0.0</string>
+    <string name="confirm_delete_title">Delete manual?</string>
+    <string name="confirm_delete_body">“%1$s” and all of its stored pages will be removed. This cannot be undone.</string>
+    <string name="deleted">Manual deleted.</string>
+
+    <!-- Detail -->
+    <string name="detail_pages">Pages (%1$d)</string>
+    <string name="detail_no_pages">No pages yet. Scan, import a photo or add a PDF.</string>
+    <string name="detail_page_label">Page %1$d</string>
+    <string name="detail_add_page">Add page</string>
+    <string name="detail_open_page">Open page</string>
+    <string name="detail_export_ok">Exported to %1$s</string>
+    <string name="detail_export_fail">Export cancelled or failed.</string>
+    <string name="detail_created">Created %1$s</string>
+    <string name="detail_updated">Updated %1$s</string>
+
+    <!-- Edit structure -->
+    <string name="structure_title">Edit Structure</string>
+    <string name="structure_hint">Rename, re-categorise, reorder or remove pages.</string>
+    <string name="structure_move_up">Move page up</string>
+    <string name="structure_move_down">Move page down</string>
+    <string name="structure_remove_page">Remove page</string>
+    <string name="structure_page_label_hint">Page label (e.g. “Engine torque specs”)</string>
+    <string name="structure_saved">Structure saved.</string>
+    <string name="structure_autosort">Auto-sort pages into sections</string>
+    <string name="structure_autosorted">Re-ordered %1$d page(s) into suggested sections.</string>
+
+    <!-- VIN -->
+    <string name="vin_title">VIN Decoder</string>
+    <string name="vin_hint">Enter a 17-character VIN</string>
+    <string name="vin_decode">Decode</string>
+    <string name="vin_clear">Clear</string>
+    <string name="vin_attach">Attach to a manual</string>
+    <string name="vin_attached">VIN attached to “%1$s”.</string>
+    <string name="vin_error_length">A VIN must be 17 characters (you entered %1$d).</string>
+    <string name="vin_error_chars">A VIN cannot contain the letters I, O or Q.</string>
+    <string name="vin_checksum_ok">Check digit valid.</string>
+    <string name="vin_checksum_bad">Check digit does not match — possible typo or non-North-American VIN.</string>
+    <string name="vin_checksum_na">Check-digit validation applies to North-American VINs only.</string>
+    <string name="vin_region">Region</string>
+    <string name="vin_manufacturer">Manufacturer</string>
+    <string name="vin_country">Country</string>
+    <string name="vin_year">Model year</string>
+    <string name="vin_plant">Plant code</string>
+    <string name="vin_serial">Serial</string>
+    <string name="vin_checksum">Check digit</string>
+    <string name="vin_unknown">Unknown</string>
+    <string name="vin_examples">Try one of these examples:</string>
+
+    <!-- Wiring -->
+    <string name="wiring_title">Wiring Diagrams</string>
+    <string name="wiring_search_hint">Search circuit, connector or colour</string>
+    <string name="wiring_systems">Systems (%1$d)</string>
+    <string name="wiring_pinouts">Pinouts (%1$d)</string>
+    <string name="wiring_no_matches">No circuits or pinouts match your search.</string>
+    <string name="wiring_tap_to_zoom">Pinch or double-tap to zoom.</string>
+    <string name="wiring_reset_zoom">Reset zoom</string>
+
+    <!-- AI sort -->
+    <string name="aisort_title">AI Sort &amp; Structure</string>
+    <string name="aisort_intro">Classify a manual from its title, notes and page labels, then apply the suggested taxonomy and section order.</string>
+    <string name="aisort_pick">Choose a manual</string>
+    <string name="aisort_run">Suggest structure</string>
+    <string name="aisort_suggested">Suggested category</string>
+    <string name="aisort_confidence">Confidence</string>
+    <string name="aisort_sections">Suggested sections</string>
+    <string name="aisort_apply">Apply to manual</string>
+    <string name="aisort_applied">Applied “%1$s” to “%2$s”.</string>
+    <string name="aisort_no_manuals">Add a manual first.</string>
+    <string name="aisort_reasons">Why</string>
+
+    <!-- AI help -->
+    <string name="aihelp_title">AI Technical Help</string>
+    <string name="aihelp_hint">Describe the problem, e.g. “P0301 misfire at idle”</string>
+    <string name="aihelp_ask">Get help</string>
+    <string name="aihelp_offline_badge">Offline knowledge base</string>
+    <string name="aihelp_remote_badge">Answered by configured AI endpoint</string>
+    <string name="aihelp_no_match">No matching article. Try a fault code (P0301), a system (charging, brakes) or a symptom.</string>
+    <string name="aihelp_remote_error">AI endpoint unavailable (%1$s). Showing offline answer instead.</string>
+    <string name="aihelp_related">Related articles</string>
+
+    <!-- About -->
+    <string name="about_title">About / Credits</string>
+    <string name="about_body">Workshop Manual Organiser\n\nScan, import and organise workshop manuals, decode VINs offline, browse wiring references and sort your library automatically.\n\nAll manuals and pages are stored privately on this device. No analytics, no advertising, no trackers.\n\nBuilt by REDRUM Studios.</string>
+    <string name="about_storage">Storage: %1$s</string>
+    <string name="about_manuals">Manuals stored: %1$d</string>
+    <string name="about_pages">Pages stored: %1$d</string>
+    <string name="about_privacy">Privacy policy</string>
+    <string name="version_line">Version %1$s (%2$d)</string>
+
+    <!-- Privacy policy (shown in-app) -->
+    <string name="privacy_title">Privacy Policy</string>
+    <string name="privacy_body">Workshop Manual Organiser stores all manuals, pages, notes and VINs locally on your device. Nothing is uploaded.\n\nThe only permission requested is Camera (when you choose to photograph a page) and Internet (used only if you configure an optional AI endpoint for technical help). There are no analytics, advertising or tracking SDKs in this app.\n\nUninstalling the app, or using Delete on a manual, removes the associated data. Cloud backup is disabled for user documents by the app’s backup rules.\n\nContact: redrum.studios@example.com</string>
+
+    <!-- Errors -->
+    <string name="err_no_camera">No camera app available on this device.</string>
+    <string name="err_generic">Something went wrong: %1$s</string>
+    <string name="err_pdf_render">Could not render PDF page %1$d.</string>
+    <string name="err_read">Could not read the selected file.</string>
 </resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Paths shared with other apps via FileProvider (camera capture + export). -->
+<paths>
+    <files-path
+        name="captures"
+        path="captures/" />
+    <files-path
+        name="library"
+        path="library/" />
+    <files-path
+        name="exports"
+        path="exports/" />
+    <cache-path
+        name="cache"
+        path="." />
+</paths>
