@@ -88,28 +88,41 @@ class WorkshopViewModel(application: Application) : AndroidViewModel(application
         onCreated: (Manual) -> Unit = {},
     ) {
         viewModelScope.launch {
-            val manual = repository.add(title, category, notes, vin, pages)
-            _message.value = "Added “${manual.title}”."
-            onCreated(manual)
+            runCatching { repository.add(title, category, notes, vin, pages) }.fold(
+                onSuccess = { manual ->
+                    _message.value = "Added “${manual.title}”."
+                    onCreated(manual)
+                },
+                onFailure = { _message.value = "Could not save manual: ${it.message ?: "unknown error"}" },
+            )
         }
     }
 
     fun updateManual(manual: Manual) {
-        viewModelScope.launch { repository.update(manual) }
+        viewModelScope.launch {
+            runCatching { repository.update(manual) }
+                .onFailure { _message.value = "Could not save changes: ${it.message ?: "unknown error"}" }
+                .onSuccess { _message.value = "Changes saved." }
+        }
     }
 
     fun deleteManual(id: String) {
         viewModelScope.launch {
-            repository.delete(id)
-            _message.value = "Manual deleted."
+            runCatching { repository.delete(id) }
+                .onFailure { _message.value = "Delete failed: ${it.message ?: "unknown error"}" }
+                .onSuccess { _message.value = "Manual deleted." }
         }
     }
 
     fun appendPages(manualId: String, pages: List<ManualPage>) {
         if (pages.isEmpty()) return
         viewModelScope.launch {
-            repository.updateById(manualId) { it.copy(pages = it.pages + pages) }
-            _message.value = "Added ${pages.size} page(s)."
+            runCatching {
+                repository.updateById(manualId) { it.copy(pages = it.pages + pages) }
+            }.fold(
+                onSuccess = { _message.value = "Added ${pages.size} page(s)." },
+                onFailure = { _message.value = "Could not add pages: ${it.message ?: "unknown error"}" },
+            )
         }
     }
 
