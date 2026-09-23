@@ -43,6 +43,8 @@ fun AiHelpScreen(
     var searched by remember { mutableStateOf(false) }
     var remoteAnswer by remember { mutableStateOf<String?>(null) }
     var remoteError by remember { mutableStateOf<String?>(null) }
+    var serverStatus by remember { mutableStateOf<String?>(null) }
+    var checkingServer by remember { mutableStateOf(false) }
 
     val examples = listOf("P0301", "P0171", "rough idle", "overheating", "ABS light", "no crank")
 
@@ -81,11 +83,36 @@ fun AiHelpScreen(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Badge {
+                    Text(stringResource(if (AiClient.isConfigured) R.string.aihelp_remote_badge else R.string.aihelp_offline_badge))
+                }
+                if (AiClient.isConfigured) {
+                    Button(
+                        enabled = !checkingServer,
+                        onClick = {
+                            checkingServer = true
+                            serverStatus = null
+                            scope.launch {
+                                AiClient.checkServer().fold(
+                                    onSuccess = { serverStatus = it },
+                                    onFailure = { serverStatus = "ERROR:" + (it.message ?: "unknown error") },
+                                )
+                                checkingServer = false
+                            }
+                        },
+                    ) { Text(stringResource(R.string.aihelp_check_server)) }
+                }
+            }
+
+            Text(stringResource(R.string.aihelp_model, AiClient.model), style = MaterialTheme.typography.bodySmall)
+
+            serverStatus?.let { status ->
+                if (status.startsWith("ERROR:")) {
                     Text(
-                        stringResource(
-                            if (AiClient.isConfigured) R.string.aihelp_remote_badge else R.string.aihelp_offline_badge,
-                        ),
+                        stringResource(R.string.aihelp_server_error, status.removePrefix("ERROR:")),
+                        color = MaterialTheme.colorScheme.error,
                     )
+                } else {
+                    Text(stringResource(R.string.aihelp_server_online, status))
                 }
             }
 
