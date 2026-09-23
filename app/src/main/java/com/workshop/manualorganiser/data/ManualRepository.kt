@@ -12,18 +12,14 @@ import java.io.File
 import java.util.UUID
 
 /**
- * Durable, dependency-free persistence for the manual library.
+ * Durable dependency-free persistence for the manual library.
  *
- * The library is stored as JSON inside app-private storage (`filesDir/manuals.json`)
- * and exposed as an observable [StateFlow]. Page files themselves live in
- * `filesDir/library/`; only their paths are recorded here.
- *
- * Every mutation goes through [mutate], which serialises writes with a mutex so
- * the in-memory state and the file on disk can never diverge.
+ * Mutations are committed to disk before the in-memory StateFlow changes.
+ * Failed writes therefore cannot be reported as successful state changes.
  */
 class ManualRepository(private val context: Context) {
-
     private val file = File(context.filesDir, FILE_NAME)
+    private val backupFile = File(context.filesDir, "$FILE_NAME.bak")
     private val mutex = Mutex()
     private val _manuals = MutableStateFlow<List<Manual>>(emptyList())
     private val _loaded = MutableStateFlow(false)
@@ -31,16 +27,21 @@ class ManualRepository(private val context: Context) {
     val manuals: StateFlow<List<Manual>> = _manuals.asStateFlow()
     val loaded: StateFlow<Boolean> = _loaded.asStateFlow()
 
-    /** Files directory used by the media importer for page storage. */
     val libraryDir: File
         get() = File(context.filesDir, "library").apply { mkdirs() }
 
     suspend fun refresh() {
-        val read = withContext(Dispatchers.IO) { read() }
+        val read = withContext(Dispatchers.IO) {
+            runCatching { read(file) }.getOrElse { error ->
+                if (backupFile.exists()) read(backupFile)
+                else throw IllegalStateException("Manual library is corrupt and no backup is available", error)
+            }
+        }
         mutex.withLock {
             _manuals.value = read
             _loaded.value = true
         }
+        cleanupOrphans()
     }
 
     suspend fun add(
@@ -50,6 +51,7 @@ class ManualRepository(private val context: Context) {
         vin: String = "",
         pages: List<ManualPage> = emptyList(),
     ): Manual {
+        require(title.isNotBlank()) { "Manual title is required" }
         val now = System.currentTimeMillis()
         val manual = Manual(
             id = UUID.randomUUID().toString(),
@@ -75,41 +77,66 @@ class ManualRepository(private val context: Context) {
             }
         }
 
-    suspend fun delete(id: String) = mutate { list -> list.filterNot { it.id == id } }
+    suspend fun delete(id: String) {
+        val removed = mutex.withLock {
+            val existing = _manuals.value.firstOrNull { it.id == id }
+            val next = _manuals.value.filterNot { it.id == id }
+            write(next)
+            _manuals.value = next
+            existing
+        }
+        removed?.pages?.forEach { page -> runCatching { File(page.uri).delete() } }
+        cleanupOrphans()
+    }
 
-    suspend fun deleteAll() = mutate { emptyList() }
+    suspend fun deleteAll() {
+        mutex.withLock {
+            write(emptyList())
+            _manuals.value = emptyList()
+        }
+        cleanupOrphans()
+    }
 
-    /** Replaces the whole library in one atomic write (used by import/restore). */
     suspend fun replaceAll(manuals: List<Manual>) = mutate { manuals }
+
+    suspend fun cleanupOrphans() = withContext(Dispatchers.IO) {
+        val referenced = _manuals.value.flatMap { it.pages }.map { File(it.uri).canonicalPath }.toSet()
+        libraryDir.listFiles()?.forEach { file ->
+            runCatching {
+                if (file.isFile && file.canonicalPath !in referenced) file.delete()
+            }
+        }
+    }
 
     private suspend fun mutate(block: (List<Manual>) -> List<Manual>) {
         mutex.withLock {
             val next = block(_manuals.value)
+            write(next)
             _manuals.value = next
-            withContext(Dispatchers.IO) { write(next) }
         }
+        cleanupOrphans()
     }
 
-    // ---------------------------------------------------------------- I/O
-
-    private fun read(): List<Manual> {
-        if (!file.exists()) return emptyList()
-        return ManualCodec.decodeLibrary(file.readText())
+    private fun read(source: File): List<Manual> {
+        if (!source.exists()) return emptyList()
+        return ManualCodec.decodeLibraryStrict(source.readText())
     }
 
     private fun write(manuals: List<Manual>) {
-        runCatching {
-            file.parentFile?.mkdirs()
-            // Write to a temp file then rename, so a crash mid-write can never
-            // truncate the existing library.
-            val tmp = File(file.parentFile, "$FILE_NAME.tmp")
-            tmp.writeText(ManualCodec.encodeLibrary(manuals))
-            if (file.exists()) file.delete()
-            tmp.renameTo(file)
+        file.parentFile?.mkdirs()
+        val tmp = File(file.parentFile, "$FILE_NAME.tmp")
+        tmp.writeText(ManualCodec.encodeLibrary(manuals))
+        if (file.exists()) {
+            if (backupFile.exists() && !backupFile.delete()) error("Could not replace library backup")
+            if (!file.renameTo(backupFile)) error("Could not create library backup")
         }
+        if (!tmp.renameTo(file)) {
+            if (backupFile.exists() && !file.exists()) backupFile.renameTo(file)
+            error("Could not commit manual library")
+        }
+        runCatching { backupFile.delete() }
     }
 
-    /** Human-readable storage footprint of the library. */
     fun storageSummary(): String {
         val bytes = (libraryDir.listFiles()?.sumOf { it.length() } ?: 0L) +
             (if (file.exists()) file.length() else 0L)
