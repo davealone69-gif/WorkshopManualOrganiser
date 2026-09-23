@@ -52,10 +52,10 @@ The app is fully functional offline. To let AI Technical Help also query an LLM
 endpoint, pass credentials at build time so nothing lands in source control:
 
 ```bash
-./gradlew assembleRelease -Pai.endpoint=https://your-endpoint/v1/chat -Pai.apiKey=…
+./gradlew assembleDebug -Pai.endpoint=http://127.0.0.1:11434/api/chat -Pai.model=llama3.2:1b
 ```
 
-Cleartext HTTP is forbidden by the network security config; the endpoint must be HTTPS.
+Only loopback HTTP for the local Ollama endpoint is permitted by the network security config; all other cleartext HTTP is blocked.
 
 ## Architecture
 
