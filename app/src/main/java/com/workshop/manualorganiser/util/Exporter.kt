@@ -30,6 +30,9 @@ object Exporter {
     private const val PAGES_DIR = "pages/"
 
     fun writeZip(manual: Manual, out: OutputStream) {
+        manual.pages.forEach { page ->
+            require(File(page.uri).isFile) { "Missing page file: ${File(page.uri).name}" }
+        }
         ZipOutputStream(BufferedOutputStream(out)).use { zip ->
             zip.putNextEntry(ZipEntry(MANUAL_ENTRY))
             zip.write(ManualCodec.encode(manual).toString(2).toByteArray(Charsets.UTF_8))
@@ -37,7 +40,6 @@ object Exporter {
 
             manual.pages.forEach { page ->
                 val source = File(page.uri)
-                require(source.isFile) { "Missing page file: ${source.name}" }
                 zip.putNextEntry(ZipEntry("$PAGES_DIR${page.id}__${source.name}"))
                 source.inputStream().use { it.copyTo(zip) }
                 zip.closeEntry()
