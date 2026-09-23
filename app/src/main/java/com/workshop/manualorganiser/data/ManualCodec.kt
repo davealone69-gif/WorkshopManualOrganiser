@@ -65,7 +65,7 @@ object ManualCodec {
 
     fun decodeLibraryStrict(text: String): List<Manual> {
         val root = JSONObject(text)
-        val version = root.optInt(KEY_VERSION, -1)
+        val version = if (root.has(KEY_VERSION)) root.optInt(KEY_VERSION, -1) else 1
         require(version in 1..SCHEMA_VERSION) { "Unsupported library schema version: $version" }
         val array = root.optJSONArray(KEY_MANUALS) ?: error("Library has no manuals array")
         return (0 until array.length()).map { index ->
