@@ -128,42 +128,51 @@ class WorkshopViewModel(application: Application) : AndroidViewModel(application
 
     fun removePage(manualId: String, pageId: String) {
         viewModelScope.launch {
-            repository.updateById(manualId) { manual ->
-                manual.copy(pages = manual.pages.filterNot { it.id == pageId })
-            }
+            runCatching {
+                repository.updateById(manualId) { manual ->
+                    manual.copy(pages = manual.pages.filterNot { it.id == pageId })
+                }
+            }.onFailure { _message.value = "Could not remove page: ${it.message ?: "unknown error"}" }
         }
     }
 
     fun movePage(manualId: String, from: Int, to: Int) {
         viewModelScope.launch {
-            repository.updateById(manualId) { manual ->
-                val pages = manual.pages.toMutableList()
-                if (from in pages.indices && to in pages.indices) {
+            runCatching {
+                repository.updateById(manualId) { manual ->
+                    val pages = manual.pages.toMutableList()
+                    require(from in pages.indices && to in pages.indices) { "Invalid page move" }
                     pages.add(to, pages.removeAt(from))
+                    manual.copy(pages = pages)
                 }
-                manual.copy(pages = pages)
-            }
+            }.onFailure { _message.value = "Could not reorder pages: ${it.message ?: "unknown error"}" }
         }
     }
 
     fun updatePageLabel(manualId: String, pageId: String, label: String) {
         viewModelScope.launch {
-            repository.updateById(manualId) { manual ->
-                manual.copy(pages = manual.pages.map { if (it.id == pageId) it.copy(label = label) else it })
-            }
+            runCatching {
+                repository.updateById(manualId) { manual ->
+                    manual.copy(pages = manual.pages.map { if (it.id == pageId) it.copy(label = label.trim()) else it })
+                }
+            }.onFailure { _message.value = "Could not save page label: ${it.message ?: "unknown error"}" }
         }
     }
 
     /** Applies a taxonomy suggestion: category plus page ordering. */
     fun applySuggestion(manualId: String, suggestion: Taxonomy.Suggestion) {
         viewModelScope.launch {
-            repository.updateById(manualId) { manual ->
-                manual.copy(
-                    category = suggestion.category,
-                    pages = Taxonomy.orderPages(manual, suggestion.sections),
-                )
-            }
-            _message.value = "Applied “${suggestion.category}”."
+            runCatching {
+                repository.updateById(manualId) { manual ->
+                    manual.copy(
+                        category = suggestion.category,
+                        pages = Taxonomy.orderPages(manual, suggestion.sections),
+                    )
+                }
+            }.fold(
+                onSuccess = { _message.value = "Applied “${suggestion.category}”." },
+                onFailure = { _message.value = "Could not apply sort: ${it.message ?: "unknown error"}" },
+            )
         }
     }
 
@@ -173,8 +182,12 @@ class WorkshopViewModel(application: Application) : AndroidViewModel(application
 
     fun attachVin(manualId: String, vin: String) {
         viewModelScope.launch {
-            repository.updateById(manualId) { it.copy(vin = vin.uppercase()) }
-            _message.value = "VIN attached."
+            runCatching {
+                repository.updateById(manualId) { it.copy(vin = vin.uppercase()) }
+            }.fold(
+                onSuccess = { _message.value = "VIN attached." },
+                onFailure = { _message.value = "Could not attach VIN: ${it.message ?: "unknown error"}" },
+            )
         }
     }
 
@@ -211,8 +224,10 @@ class WorkshopViewModel(application: Application) : AndroidViewModel(application
             _busy.value = false
             result.fold(
                 onSuccess = { manual ->
-                    repository.replaceAll(repository.manuals.value + manual)
-                    _message.value = "Restored “${manual.title}”."
+                    runCatching { repository.replaceAll(repository.manuals.value + manual) }.fold(
+                        onSuccess = { _message.value = "Restored “${manual.title}”." },
+                        onFailure = { _message.value = "Restore failed while saving: ${it.message ?: "unknown error"}" },
+                    )
                 },
                 onFailure = { _message.value = "Restore failed: ${it.message ?: "unknown error"}" },
             )
