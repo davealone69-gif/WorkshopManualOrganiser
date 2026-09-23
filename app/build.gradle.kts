@@ -6,9 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// Optional release signing. Create keystore.properties (git-ignored) with
-// storeFile / storePassword / keyPassword / keyAlias. Falls back to the debug
-// keystore so `assembleRelease` still produces an installable APK.
+// Release signing is mandatory. Create keystore.properties (git-ignored) locally,
+// or provide equivalent CI secrets. Never sign a release with the debug key.
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
@@ -16,8 +15,9 @@ val keystoreProperties = Properties().apply {
 
 // Optional AI configuration, kept out of source control.
 // Provide with -Pai.endpoint=... -Pai.apiKey=... or in gradle.properties.
-val aiEndpoint: String = (project.findProperty("ai.endpoint") as String?) ?: ""
+val aiEndpoint: String = (project.findProperty("ai.endpoint") as String?) ?: "http://127.0.0.1:11434/api/chat"
 val aiApiKey: String = (project.findProperty("ai.apiKey") as String?) ?: ""
+val aiModel: String = (project.findProperty("ai.model") as String?) ?: "llama3.2:1b"
 
 android {
     namespace = "com.workshop.manualorganiser"
@@ -61,11 +61,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
+            if (!keystorePropertiesFile.exists()) {
+                throw GradleException("Release signing is required. Create keystore.properties with a real release keystore; refusing to sign release with the debug key.")
             }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -114,6 +113,10 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.okhttp)
     implementation(libs.kotlinx.coroutines.android)
+
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.uiautomator)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
     // Real org.json implementation for unit tests (the android.jar stub returns defaults).
