@@ -23,7 +23,7 @@ jobs:
           echo "$SDK/platform-tools" >> "$GITHUB_PATH"
       - name: Install SDK packages
         run: |
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
