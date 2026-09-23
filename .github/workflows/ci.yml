@@ -58,7 +58,7 @@ jobs:
           echo "$SDK/platform-tools" >> "$GITHUB_PATH"
       - name: Install SDK packages
         run: |
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "emulator" "system-images;android-35;google_apis;x86_64"
           echo "no" | avdmanager create avd --force --name ci-api35 --package "system-images;android-35;google_apis;x86_64" --device "pixel_2"
       - name: Run on-device UI tests
@@ -124,9 +124,9 @@ jobs:
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
+          name: release-artifacts
           path: |
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
