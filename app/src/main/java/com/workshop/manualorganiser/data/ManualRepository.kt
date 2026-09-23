@@ -72,6 +72,7 @@ class ManualRepository(private val context: Context) {
 
     suspend fun updateById(id: String, transform: (Manual) -> Manual) =
         mutate { list ->
+            require(list.any { it.id == id }) { "Manual not found: $id" }
             list.map {
                 if (it.id == id) transform(it.copy(updatedAt = System.currentTimeMillis())) else it
             }
