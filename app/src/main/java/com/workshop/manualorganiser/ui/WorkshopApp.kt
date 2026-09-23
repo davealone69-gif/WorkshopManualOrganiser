@@ -83,6 +83,7 @@ fun WorkshopApp(
     var captureFile by remember { mutableStateOf<File?>(null) }
 
     val message by viewModel.message.collectAsStateWithLifecycle()
+    val busy by viewModel.busy.collectAsStateWithLifecycle()
 
     LaunchedEffect(initialImportUri) {
         initialImportUri?.let {
@@ -232,6 +233,12 @@ fun WorkshopApp(
                     viewModel = viewModel,
                     onBack = { screen = Screen.Home },
                     onOpenDestination = goTo,
+                )
+            }
+
+            if (busy) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier.padding(24.dp),
                 )
             }
         }
