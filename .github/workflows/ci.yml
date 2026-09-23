@@ -61,7 +61,18 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "emulator" "system-images;android-35;google_apis;x86_64"
           echo "no" | avdmanager create avd --force --name ci-api35 --package "system-images;android-35;google_apis;x86_64" --device "pixel_2"
-      - name: Run on-device UI tests
+      - name: Start real Ollama host server
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          nohup ollama serve >/tmp/ollama.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && break
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:11434/api/tags >/dev/null
+          ollama pull llama3.2:1b
+
+      - name: Run on-device UI and real LLM tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -70,7 +81,7 @@ jobs:
           profile: pixel_2
           emulator-options: -no-window -no-audio -no-boot-anim
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest --stacktrace
+          script: ./gradlew connectedDebugAndroidTest -Pai.endpoint=http://10.0.2.2:11434/api/chat -Pai.model=llama3.2:1b --stacktrace
       - name: Upload instrumentation reports
         if: always()
         uses: actions/upload-artifact@v4
