@@ -70,7 +70,11 @@ sealed interface Screen {
 }
 
 @Composable
-fun WorkshopApp(viewModel: WorkshopViewModel = viewModel()) {
+fun WorkshopApp(
+    viewModel: WorkshopViewModel = viewModel(),
+    initialImportUri: Uri? = null,
+    onImportConsumed: () -> Unit = {},
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -79,6 +83,13 @@ fun WorkshopApp(viewModel: WorkshopViewModel = viewModel()) {
     var captureFile by remember { mutableStateOf<File?>(null) }
 
     val message by viewModel.message.collectAsStateWithLifecycle()
+
+    LaunchedEffect(initialImportUri) {
+        initialImportUri?.let {
+            viewModel.importArchive(it)
+            onImportConsumed()
+        }
+    }
     LaunchedEffect(message) {
         message?.let {
             snackbarHostState.showSnackbar(it)
