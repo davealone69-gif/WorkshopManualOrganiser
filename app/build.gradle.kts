@@ -108,10 +108,10 @@ tasks.register("verifyReleaseSigning") {
     }
 }
 
-tasks.configureEach {
-    if (name != "verifyReleaseSigning" && name.contains("Release", ignoreCase = true)) {
-        dependsOn("verifyReleaseSigning")
-    }
+tasks.matching {
+    name == "assembleRelease" || name == "bundleRelease"
+}.configureEach {
+    dependsOn("verifyReleaseSigning")
 }
 
 dependencies {
