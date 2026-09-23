@@ -63,10 +63,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (!keystorePropertiesFile.exists()) {
-                throw GradleException("Release signing is required. Create keystore.properties with a real release keystore; refusing to sign release with the debug key.")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
             }
-            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -92,6 +91,26 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+}
+
+tasks.register("verifyReleaseSigning") {
+    doLast {
+        if (!keystorePropertiesFile.exists()) {
+            throw GradleException("Release signing is required. Create keystore.properties with a real release keystore; refusing to sign release with the debug key.")
+        }
+        val required = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+        required.forEach { key ->
+            if (keystoreProperties.getProperty(key).isNullOrBlank()) {
+                throw GradleException("Release signing property '$key' is missing.")
+            }
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name.contains("Release", ignoreCase = true)) {
+        dependsOn("verifyReleaseSigning")
     }
 }
 
