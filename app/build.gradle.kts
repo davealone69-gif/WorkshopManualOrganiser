@@ -109,7 +109,7 @@ tasks.register("verifyReleaseSigning") {
 }
 
 tasks.configureEach {
-    if (name.contains("Release", ignoreCase = true)) {
+    if (name != "verifyReleaseSigning" && name.contains("Release", ignoreCase = true)) {
         dependsOn("verifyReleaseSigning")
     }
 }
