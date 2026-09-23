@@ -124,7 +124,11 @@
     <string name="aihelp_hint">Describe the problem, e.g. “P0301 misfire at idle”</string>
     <string name="aihelp_ask">Get help</string>
     <string name="aihelp_offline_badge">Offline knowledge base</string>
-    <string name="aihelp_remote_badge">Answered by configured AI endpoint</string>
+    <string name="aihelp_remote_badge">Local Ollama LLM</string>
+    <string name="aihelp_check_server">Check local LLM</string>
+    <string name="aihelp_server_online">Local LLM online: %1$s</string>
+    <string name="aihelp_server_error">Local LLM unavailable: %1$s</string>
+    <string name="aihelp_model">Model: %1$s</string>
     <string name="aihelp_no_match">No matching article. Try a fault code (P0301), a system (charging, brakes) or a symptom.</string>
     <string name="aihelp_remote_error">AI endpoint unavailable (%1$s). Showing offline answer instead.</string>
     <string name="aihelp_related">Related articles</string>
@@ -140,7 +144,7 @@
 
     <!-- Privacy policy (shown in-app) -->
     <string name="privacy_title">Privacy Policy</string>
-    <string name="privacy_body">Workshop Manual Organiser stores all manuals, pages, notes and VINs locally on your device. Nothing is uploaded.\n\nThe only permission requested is Camera (when you choose to photograph a page) and Internet (used only if you configure an optional AI endpoint for technical help). There are no analytics, advertising or tracking SDKs in this app.\n\nUninstalling the app, or using Delete on a manual, removes the associated data. Cloud backup is disabled for user documents by the app’s backup rules.\n\nContact: redrum.studios@example.com</string>
+    <string name="privacy_body">Workshop Manual Organiser stores all manuals, pages, notes and VINs locally on your device. Nothing is uploaded.\n\nThe app uses the system camera/document pickers and Internet only for the configured local LLM connection. It does not request legacy storage permissions. There are no analytics, advertising or tracking SDKs in this app.\n\nUninstalling the app, or using Delete on a manual, removes the associated data. Cloud backup is disabled for user documents by the app’s backup rules.</string>
 
     <!-- Errors -->
     <string name="err_no_camera">No camera app available on this device.</string>
