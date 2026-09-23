@@ -37,7 +37,7 @@ object Exporter {
 
             manual.pages.forEach { page ->
                 val source = File(page.uri)
-                if (!source.exists()) return@forEach
+                require(source.isFile) { "Missing page file: ${source.name}" }
                 zip.putNextEntry(ZipEntry("$PAGES_DIR${page.id}__${source.name}"))
                 source.inputStream().use { it.copyTo(zip) }
                 zip.closeEntry()
@@ -85,12 +85,16 @@ object Exporter {
                 var entry: ZipEntry? = zip.nextEntry
                 while (entry != null) {
                     val name = entry.name
+                    require(isSafeEntryName(name)) { "Unsafe ZIP entry: $name" }
                     if (name == MANUAL_ENTRY) {
                         manifest = JSONObject(zip.readBytes().toString(Charsets.UTF_8))
                     } else if (name.startsWith(PAGES_DIR) && !entry.isDirectory) {
                         val fileName = name.removePrefix(PAGES_DIR)
                         val pageId = fileName.substringBefore("__")
-                        val dest = File(library, "restored_${UUID.randomUUID()}_${fileName.substringAfter("__")}")
+                        val originalName = fileName.substringAfter("__", "")
+                        require(pageId.isNotBlank() && originalName.isNotBlank()) { "Invalid page entry: $name" }
+                        require(pageId !in restored) { "Duplicate page id: $pageId" }
+                        val dest = File(library, "restored_${UUID.randomUUID()}_${safeName(originalName)}")
                         dest.outputStream().use { output -> zip.copyTo(output) }
                         restored[pageId] = dest
                     }
@@ -100,8 +104,10 @@ object Exporter {
 
                 val json = manifest ?: error("Not a Workshop Manual Organiser export")
                 val decoded = ManualCodec.decode(json)
-                val pages = decoded.pages.mapNotNull { page ->
-                    restored[page.id]?.let { page.copy(id = UUID.randomUUID().toString(), uri = it.absolutePath) }
+                val missing = decoded.pages.map { it.id }.filterNot { it in restored }
+                require(missing.isEmpty()) { "Archive is incomplete; missing ${missing.size} page file(s)" }
+                val pages = decoded.pages.map { page ->
+                    page.copy(id = UUID.randomUUID().toString(), uri = restored.getValue(page.id).absolutePath)
                 }
                 decoded.copy(
                     id = UUID.randomUUID().toString(),
@@ -111,6 +117,13 @@ object Exporter {
                 )
             }
         }
+    }
+
+    private fun isSafeEntryName(name: String): Boolean {
+        if (name.isBlank() || name.startsWith("/") || name.contains('\\')) return false
+        val parts = name.split('/')
+        if (parts.any { it.isBlank() || it == "." || it == ".." }) return false
+        return name == MANUAL_ENTRY || (parts.size == 2 && parts[0] == "pages")
     }
 
     fun safeName(title: String): String {
