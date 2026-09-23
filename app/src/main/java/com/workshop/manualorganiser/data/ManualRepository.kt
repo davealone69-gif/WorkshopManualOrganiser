@@ -68,7 +68,10 @@ class ManualRepository(private val context: Context) {
     }
 
     suspend fun update(manual: Manual) =
-        mutate { list -> list.map { if (it.id == manual.id) manual.copy(updatedAt = System.currentTimeMillis()) else it } }
+        mutate { list ->
+            require(list.any { it.id == manual.id }) { "Manual not found: ${manual.id}" }
+            list.map { if (it.id == manual.id) manual.copy(updatedAt = System.currentTimeMillis()) else it }
+        }
 
     suspend fun updateById(id: String, transform: (Manual) -> Manual) =
         mutate { list ->
@@ -86,7 +89,12 @@ class ManualRepository(private val context: Context) {
             _manuals.value = next
             existing
         }
-        removed?.pages?.forEach { page -> runCatching { File(page.uri).delete() } }
+        removed?.pages?.forEach { page ->
+            val deleted = runCatching { File(page.uri).delete() }.getOrDefault(false)
+            if (!deleted && File(page.uri).exists()) {
+                throw IllegalStateException("Could not remove page file: ${File(page.uri).name}")
+            }
+        }
         cleanupOrphans()
     }
 
