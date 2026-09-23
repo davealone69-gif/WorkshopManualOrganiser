@@ -1,5 +1,6 @@
 package com.workshop.manualorganiser.ui
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -56,6 +57,7 @@ import coil.compose.AsyncImage
 import com.workshop.manualorganiser.R
 import com.workshop.manualorganiser.data.ManualPage
 import com.workshop.manualorganiser.util.MediaImporter
+import androidx.core.content.FileProvider
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -149,6 +151,19 @@ fun ManualDetailScreen(
                     createExport.launch("${safeExportName(manual.title)}.zip")
                 }) {
                     Icon(Icons.Default.IosShare, contentDescription = stringResource(R.string.ctx_export))
+                }
+                IconButton(onClick = {
+                    viewModel.shareArchive(manual) { file ->
+                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                        val share = Intent(Intent.ACTION_SEND).apply {
+                            type = "application/zip"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(Intent.createChooser(share, null))
+                    }
+                }) {
+                    Icon(Icons.Default.IosShare, contentDescription = stringResource(R.string.action_share))
                 }
                 IconButton(onClick = { confirmDelete = true }) {
                     Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
