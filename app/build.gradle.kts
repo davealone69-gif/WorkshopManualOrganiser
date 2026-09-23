@@ -37,6 +37,8 @@ android {
         val escapedApiKey = aiApiKey.replace("\\", "\\\\").replace("\"", "\\\"")
         buildConfigField("String", "AI_ENDPOINT", "\"$escapedEndpoint\"")
         buildConfigField("String", "AI_API_KEY", "\"$escapedApiKey\"")
+        val escapedModel = aiModel.replace("\\", "\\\\").replace("\"", "\\\"")
+        buildConfigField("String", "AI_MODEL", "\"$escapedModel\"")
     }
 
     signingConfigs {
