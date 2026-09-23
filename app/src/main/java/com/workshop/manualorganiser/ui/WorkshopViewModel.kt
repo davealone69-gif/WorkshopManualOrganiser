@@ -38,7 +38,12 @@ class WorkshopViewModel(application: Application) : AndroidViewModel(application
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
     init {
-        viewModelScope.launch { repository.refresh() }
+        viewModelScope.launch {
+            runCatching { repository.refresh() }
+                .onFailure {
+                    _message.value = "Library could not be loaded: ${it.message ?: "unknown error"}"
+                }
+        }
     }
 
     fun clearMessage() {
