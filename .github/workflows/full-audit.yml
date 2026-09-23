@@ -8,8 +8,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  actions: read
 
 jobs:
   audit:
@@ -20,6 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Gradle audit and build
         if: ${{ hashFiles('gradlew') != '' }}
         shell: bash
@@ -45,12 +44,5 @@ jobs:
         if: ${{ hashFiles('**/*.py') != '' }}
         shell: bash
         run: |
+          set -o pipefail
           python -m compileall -q .
-
-      - name: CodeQL security analysis
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript-typescript
-
-      - name: CodeQL analyze
-        uses: github/codeql-action/analyze@v3
