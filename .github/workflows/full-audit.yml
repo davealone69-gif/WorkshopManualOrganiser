@@ -26,7 +26,7 @@ jobs:
         run: |
           set -o pipefail
           chmod +x gradlew
-          ./gradlew lint test assembleDebug --continue --stacktrace --console=plain
+          ./gradlew lint test assembleDebug --stacktrace --console=plain
 
       - name: Node audit and test
         if: ${{ hashFiles('package.json') != '' }}
@@ -34,7 +34,7 @@ jobs:
         run: |
           set -o pipefail
           npm ci --ignore-scripts
-          npm audit --audit-level=high || true
+          npm audit --audit-level=high
           if npm run | grep -qE '^  (test|lint|build)'; then
             npm run test --if-present
             npm run lint --if-present
