@@ -63,9 +63,16 @@ object ManualCodec {
         return root.toString()
     }
 
-    fun decodeLibrary(text: String): List<Manual> = runCatching {
+    fun decodeLibraryStrict(text: String): List<Manual> {
         val root = JSONObject(text)
-        val array = root.optJSONArray(KEY_MANUALS) ?: JSONArray()
-        (0 until array.length()).mapNotNull { array.optJSONObject(it)?.let(::decode) }
-    }.getOrElse { emptyList() }
+        val version = root.optInt(KEY_VERSION, -1)
+        require(version in 1..SCHEMA_VERSION) { "Unsupported library schema version: $version" }
+        val array = root.optJSONArray(KEY_MANUALS) ?: error("Library has no manuals array")
+        return (0 until array.length()).map { index ->
+            decode(array.getJSONObject(index))
+        }
+    }
+
+    fun decodeLibrary(text: String): List<Manual> =
+        runCatching { decodeLibraryStrict(text) }.getOrElse { emptyList() }
 }
