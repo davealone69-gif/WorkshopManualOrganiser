@@ -77,7 +77,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           force-avd-creation: true
-          emulator-options: -no-window -no-audio -no-boot-anim -gpu off -no-snapshot -no-snapshot-save
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader -no-snapshot -no-snapshot-save -no-accel
           disable-animations: true
           script: ./gradlew connectedDebugAndroidTest -Pai.endpoint=http://10.0.2.2:11434/api/chat -Pai.model=llama3.2:1b --stacktrace
       - name: Upload instrumentation reports
