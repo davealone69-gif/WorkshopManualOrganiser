@@ -44,8 +44,9 @@ object AiClient {
                 val names = (0 until models.length()).mapNotNull { i ->
                     models.optJSONObject(i)?.optString("name")?.takeIf { it.isNotBlank() }
                 }
-                if (names.isNotEmpty() && names.none { it == model }) {
-                    error("Ollama is online, but model '$model' is not installed")
+                require(names.contains(model)) {
+                    if (names.isEmpty()) "Ollama is online, but no models are installed"
+                    else "Ollama is online, but model '$model' is not installed"
                 }
                 "Ollama online • $model"
             }
