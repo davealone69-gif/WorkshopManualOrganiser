@@ -10,7 +10,7 @@
     <string name="menu_upload">Upload</string>
     <string name="menu_vin">VIN Decoder</string>
     <string name="menu_wiring">Wiring Diagrams</string>
-    <string name="menu_ai_sort">AI Sort &amp; Structure</string>
+    <string name="menu_ai_sort">Smart Sort &amp; Structure</string>
     <string name="menu_ai_help">AI Technical Help</string>
     <string name="menu_about">About / Credits</string>
     <string name="menu_more">More options</string>
@@ -43,6 +43,7 @@
     <string name="delete">Delete</string>
     <string name="close">Close</string>
     <string name="edit">Edit</string>
+    <string name="action_share">Share backup</string>
 
     <!-- Context actions -->
     <string name="ctx_open">Open</string>
@@ -103,11 +104,11 @@
     <string name="wiring_systems">Systems (%1$d)</string>
     <string name="wiring_pinouts">Pinouts (%1$d)</string>
     <string name="wiring_no_matches">No circuits or pinouts match your search.</string>
-    <string name="wiring_tap_to_zoom">Pinch or double-tap to zoom.</string>
+    <string name="wiring_tap_to_zoom">Offline wiring reference</string>
     <string name="wiring_reset_zoom">Reset zoom</string>
 
     <!-- AI sort -->
-    <string name="aisort_title">AI Sort &amp; Structure</string>
+    <string name="aisort_title">Smart Sort &amp; Structure</string>
     <string name="aisort_intro">Classify a manual from its title, notes and page labels, then apply the suggested taxonomy and section order.</string>
     <string name="aisort_pick">Choose a manual</string>
     <string name="aisort_run">Suggest structure</string>
