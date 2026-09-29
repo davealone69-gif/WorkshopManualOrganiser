@@ -18,6 +18,10 @@ val keystoreProperties = Properties().apply {
 val aiEndpoint: String = (project.findProperty("ai.endpoint") as String?) ?: "http://127.0.0.1:11434/api/chat"
 val aiApiKey: String = (project.findProperty("ai.apiKey") as String?) ?: ""
 val aiModel: String = (project.findProperty("ai.model") as String?) ?: "llama3.2:1b"
+// Hermes Agent API server is OpenAI-compatible. Keep the key out of source control.
+val hermesEndpoint: String = (project.findProperty("hermes.endpoint") as String?) ?: ""
+val hermesApiKey: String = (project.findProperty("hermes.apiKey") as String?) ?: ""
+val hermesModel: String = (project.findProperty("hermes.model") as String?) ?: "hermes-agent"
 
 android {
     namespace = "com.workshop.manualorganiser"
@@ -39,6 +43,12 @@ android {
         buildConfigField("String", "AI_API_KEY", "\"$escapedApiKey\"")
         val escapedModel = aiModel.replace("\\", "\\\\").replace("\"", "\\\"")
         buildConfigField("String", "AI_MODEL", "\"$escapedModel\"")
+        val escapedHermesEndpoint = hermesEndpoint.replace("\\", "\\\\").replace("\"", "\\\"")
+        val escapedHermesApiKey = hermesApiKey.replace("\\", "\\\\").replace("\"", "\\\"")
+        val escapedHermesModel = hermesModel.replace("\\", "\\\\").replace("\"", "\\\"")
+        buildConfigField("String", "HERMES_ENDPOINT", "\"$escapedHermesEndpoint\"")
+        buildConfigField("String", "HERMES_API_KEY", "\"$escapedHermesApiKey\"")
+        buildConfigField("String", "HERMES_MODEL", "\"$escapedHermesModel\"")
     }
 
     signingConfigs {
