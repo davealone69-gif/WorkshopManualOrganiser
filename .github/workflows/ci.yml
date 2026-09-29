@@ -25,7 +25,7 @@ jobs:
       - name: Install SDK packages
         run: |
           yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
       - name: Assemble debug
@@ -58,7 +58,7 @@ jobs:
       - name: Install Android test packages
         run: |
           yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "emulator" "system-images;android-35;google_apis;x86_64"
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "emulator" "system-images;android-34;google_apis;x86_64"
       - name: Start real Ollama host server
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
@@ -72,7 +72,7 @@ jobs:
       - name: Run on-device UI and real LLM tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 34
           target: google_apis
           arch: x86_64
           profile: pixel_2
