@@ -83,7 +83,7 @@ fun AiHelpScreen(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Badge {
-                    Text(stringResource(if (AiClient.isConfigured) R.string.aihelp_remote_badge else R.string.aihelp_offline_badge))
+                    Text(if (AiClient.isConfigured) AiClient.backendName else stringResource(R.string.aihelp_offline_badge))
                 }
                 if (AiClient.isConfigured) {
                     Button(
