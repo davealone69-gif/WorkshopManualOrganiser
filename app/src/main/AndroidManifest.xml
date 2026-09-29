@@ -10,6 +10,8 @@
     -->
     <!-- Internet is used by the optional AI Technical Help remote lookup. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Allows the app to ask Termux to start the real local Ollama process. -->
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
 
     <uses-feature
         android:name="android.hardware.camera"
