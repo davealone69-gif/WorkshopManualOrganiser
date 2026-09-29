@@ -27,34 +27,47 @@ object AiClient {
             .build()
     }
 
-    val isConfigured: Boolean get() = BuildConfig.AI_ENDPOINT.isNotBlank()
-    val endpoint: String get() = BuildConfig.AI_ENDPOINT
-    val model: String get() = BuildConfig.AI_MODEL
+    private val hermesConfigured: Boolean get() = BuildConfig.HERMES_ENDPOINT.isNotBlank()
+    val isConfigured: Boolean get() = hermesConfigured || BuildConfig.AI_ENDPOINT.isNotBlank()
+    val endpoint: String get() = if (hermesConfigured) BuildConfig.HERMES_ENDPOINT else BuildConfig.AI_ENDPOINT
+    val model: String get() = if (hermesConfigured) BuildConfig.HERMES_MODEL else BuildConfig.AI_MODEL
+    val backendName: String get() = if (hermesConfigured) "Hermes Agent" else "Local Ollama"
 
     private val jsonType = "application/json; charset=utf-8".toMediaType()
 
     suspend fun checkServer(): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            val base = ollamaBaseUrl() ?: error("Local Ollama endpoint is not configured")
-            val request = Request.Builder().url(base.trimEnd('/') + "/api/tags").get().build()
-            client.newCall(request).execute().use { response ->
-                val body = response.body?.string().orEmpty()
-                if (!response.isSuccessful) error("HTTP ${response.code}")
-                val models = JSONObject(body).optJSONArray("models") ?: JSONArray()
-                val names = (0 until models.length()).mapNotNull { i ->
-                    models.optJSONObject(i)?.optString("name")?.takeIf { it.isNotBlank() }
+            if (hermesConfigured) {
+                val base = endpoint.trimEnd('/').removeSuffix("/v1")
+                val request = Request.Builder().url(base + "/health").get().apply {
+                    if (BuildConfig.HERMES_API_KEY.isNotBlank()) header("Authorization", "Bearer ${BuildConfig.HERMES_API_KEY}")
+                }.build()
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) error("Hermes HTTP ${response.code}")
+                    "Hermes Agent online • $model"
                 }
-                require(names.contains(model)) {
-                    if (names.isEmpty()) "Ollama is online, but no models are installed"
-                    else "Ollama is online, but model '$model' is not installed"
+            } else {
+                val base = ollamaBaseUrl() ?: error("Local Ollama endpoint is not configured")
+                val request = Request.Builder().url(base.trimEnd('/') + "/api/tags").get().build()
+                client.newCall(request).execute().use { response ->
+                    val body = response.body?.string().orEmpty()
+                    if (!response.isSuccessful) error("HTTP ${response.code}")
+                    val models = JSONObject(body).optJSONArray("models") ?: JSONArray()
+                    val names = (0 until models.length()).mapNotNull { i ->
+                        models.optJSONObject(i)?.optString("name")?.takeIf { it.isNotBlank() }
+                    }
+                    require(names.contains(model)) {
+                        if (names.isEmpty()) "Ollama is online, but no models are installed"
+                        else "Ollama is online, but model '$model' is not installed"
+                    }
+                    "Ollama online • $model"
                 }
-                "Ollama online • $model"
             }
         }
     }
 
     suspend fun ask(question: String, systemContext: String): Result<String> = withContext(Dispatchers.IO) {
-        if (!isConfigured) return@withContext Result.failure(IllegalStateException("Local LLM endpoint is not configured"))
+        if (!isConfigured) return@withContext Result.failure(IllegalStateException("No AI backend is configured"))
         if (question.isBlank()) return@withContext Result.failure(IllegalArgumentException("Question is empty"))
 
         runCatching {
@@ -63,7 +76,7 @@ object AiClient {
                     put("role", "system")
                     put(
                         "content",
-                        "You are a workshop-manual technical assistant. Use the supplied offline reference context when relevant. Do not invent vehicle-specific specifications. Clearly state uncertainty. Context:\n$systemContext",
+                        "You are Hermes, the Workshop Manual Master diagnostic research agent. Use supplied manual context first, then use your configured research tools when needed. Never invent vehicle-specific specifications. For fault finding, identify shared dependencies before naming parts, verify model/year applicability, distinguish manual evidence from internet reports, and state uncertainty plainly. If evidence conflicts, show the conflict instead of arguing. Be humble and fact-check. Music control is forbidden unless the user explicitly commands a music action. Context:\n$systemContext",
                     )
                 })
                 .put(JSONObject().apply {
@@ -82,8 +95,11 @@ object AiClient {
                 .post(payload.toString().toRequestBody(jsonType))
                 .header("Content-Type", "application/json")
                 .apply {
-                    if (BuildConfig.AI_API_KEY.isNotBlank()) {
-                        header("Authorization", "Bearer ${BuildConfig.AI_API_KEY}")
+                    val key = if (hermesConfigured) BuildConfig.HERMES_API_KEY else BuildConfig.AI_API_KEY
+                    if (key.isNotBlank()) header("Authorization", "Bearer $key")
+                    if (hermesConfigured) {
+                        header("X-Hermes-Session-Id", "workshop-manual-master")
+                        header("X-Hermes-Session-Key", "workshop-manual-master")
                     }
                 }
                 .build()
@@ -106,6 +122,7 @@ object AiClient {
         return runCatching {
             val json = JSONObject(body)
             json.optJSONObject("message")?.optString("content").orEmpty()
+                .ifBlank { json.optJSONArray("choices")?.optJSONObject(0)?.optJSONObject("message")?.optString("content").orEmpty() }
         }.getOrDefault("")
     }
 }
