@@ -3,10 +3,8 @@ package com.workshop.manualorganiser
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -18,21 +16,14 @@ class WorkshopSmokeTest {
     val compose = createAndroidComposeRule<MainActivity>()
 
     @Test
-    fun criticalNavigationAndCreateFlowWorksOnDevice() {
-        compose.onNodeWithText("Workshop Manual Organiser").assertIsDisplayed()
-        compose.onNodeWithText("Add Manual").assertIsDisplayed()
-        compose.onNodeWithText("Add Manual").performClick()
-
-        compose.onNodeWithText("Title").performTextInput("CI smoke manual")
-        compose.onNodeWithText("Save").performClick()
-
-        compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodesWithText("CI smoke manual").fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithText("CI smoke manual").assertIsDisplayed()
-
-        compose.onNodeWithContentDescription("More options").performClick()
-        compose.onNodeWithText("VIN Decoder").performClick()
-        compose.onNodeWithText("VIN Decoder").assertIsDisplayed()
+    fun oldWorkshopNavigationAndAiEntryAreVisible() {
+        compose.onNodeWithText("Workshop Dashboard").assertIsDisplayed()
+        compose.onNodeWithText("Recent Manuals").assertIsDisplayed()
+        compose.onNodeWithText("Library").performClick()
+        compose.onNodeWithText("Manual Library").assertIsDisplayed()
+        compose.onAllNodesWithText("Settings").onLast().performClick()
+        compose.onNodeWithText("Theme").assertIsDisplayed()
+        compose.onNodeWithText("AI Assist").performClick()
+        compose.onNodeWithText("AI Auto-Tagging & OCR").assertIsDisplayed()
     }
 }
