@@ -30,12 +30,20 @@ object HermesGatewayClient {
         if (endpoint.isBlank()) error("Hermes endpoint is not configured")
 
         val messages = JSONArray()
-        messages.put(JSONObject().put(
-            "role", "system",
-            "content", "You are the Hermes orchestration layer for Workshop Manual Organiser. Use connected tools only when actually available and never fabricate tool results."
-        ))
+        messages.put(
+            JSONObject()
+                .put("role", "system")
+                .put(
+                    "content",
+                    "You are the Hermes orchestration layer for Workshop Manual Organiser. Use connected tools only when actually available and never fabricate tool results."
+                )
+        )
         history.forEach { (isUser, text) ->
-            messages.put(JSONObject().put("role", if (isUser) "user" else "assistant").put("content", text))
+            messages.put(
+                JSONObject()
+                    .put("role", if (isUser) "user" else "assistant")
+                    .put("content", text)
+            )
         }
 
         val body = JSONObject()
