@@ -19,7 +19,7 @@ val aiEndpoint: String = (project.findProperty("ai.endpoint") as String?) ?: "ht
 val aiApiKey: String = (project.findProperty("ai.apiKey") as String?) ?: ""
 val aiModel: String = (project.findProperty("ai.model") as String?) ?: "llama3.2:1b"
 // Hermes Agent API server is OpenAI-compatible. Keep the key out of source control.
-val hermesEndpoint: String = (project.findProperty("hermes.endpoint") as String?) ?: ""
+val hermesEndpoint: String = (project.findProperty("hermes.endpoint") as String?) ?: "http://127.0.0.1:8642/v1/chat/completions"
 val hermesApiKey: String = (project.findProperty("hermes.apiKey") as String?) ?: ""
 val hermesModel: String = (project.findProperty("hermes.model") as String?) ?: "hermes-agent"
 
