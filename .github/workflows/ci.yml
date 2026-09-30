@@ -77,11 +77,11 @@ jobs:
           arch: x86_64
           profile: pixel_2
           force-avd-creation: true
-          wipe-data: true
           cores: 2
           ram-size: 4096M
           disk-size: 6G
-          emulator-boot-timeout: 600
+          emulator-boot-timeout: 900
+          pre-emulator-launch-script: adb kill-server || true; adb start-server
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot -no-snapshot-save
           disable-animations: true
           script: ./gradlew connectedDebugAndroidTest -Pai.endpoint=http://10.0.2.2:11434/api/chat -Pai.model=llama3.2:1b --stacktrace
