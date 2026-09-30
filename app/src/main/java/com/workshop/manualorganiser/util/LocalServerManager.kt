@@ -31,7 +31,12 @@ object LocalServerManager {
             command = OLLAMA_PATH,
             args = listOf("serve"),
         )
-        if (launch.isFailure) return launch
+        if (launch.isFailure) {
+            return Result.failure(
+                launch.exceptionOrNull()
+                    ?: IllegalStateException("Termux refused to start Ollama")
+            )
+        }
 
         var lastError = initial.exceptionOrNull()?.message ?: "Ollama is offline"
         repeat(15) {
