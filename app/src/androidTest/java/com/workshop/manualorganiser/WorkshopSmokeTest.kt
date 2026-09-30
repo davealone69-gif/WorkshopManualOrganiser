@@ -23,6 +23,6 @@ class WorkshopSmokeTest {
         compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithText("Settings").assertIsDisplayed()
         compose.onNodeWithText("AI Assist").performClick()
-        compose.onNodeWithText("AI Assistant").assertIsDisplayed()
+        compose.onNodeWithText("AI Auto-Tagging & OCR").assertIsDisplayed()
     }
 }
