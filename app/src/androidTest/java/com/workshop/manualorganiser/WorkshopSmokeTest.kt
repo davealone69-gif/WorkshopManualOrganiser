@@ -2,7 +2,6 @@ package com.workshop.manualorganiser
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -21,7 +20,7 @@ class WorkshopSmokeTest {
         compose.onNodeWithText("Recent Manuals").assertIsDisplayed()
         compose.onNodeWithText("Library").performClick()
         compose.onNodeWithText("Manual Library").assertIsDisplayed()
-        compose.onAllNodesWithText("Settings").onLast().performClick()
+        compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithText("Theme").assertIsDisplayed()
         compose.onNodeWithText("AI Assist").performClick()
         compose.onNodeWithText("AI Auto-Tagging & OCR").assertIsDisplayed()
