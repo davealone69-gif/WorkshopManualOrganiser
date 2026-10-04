@@ -19,10 +19,16 @@ class WorkshopSmokeTest {
 
     @Test
     fun criticalNavigationAndCreateFlowWorksOnDevice() {
+        compose.waitUntil(timeoutMillis = 15_000) {
+            compose.onAllNodesWithText("Add Manual").fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithText("Workshop Manual Organiser").assertIsDisplayed()
         compose.onNodeWithText("Add Manual").assertIsDisplayed()
         compose.onNodeWithText("Add Manual").performClick()
 
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("Title").fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithText("Title").performTextInput("CI smoke manual")
         compose.onNodeWithText("Save").performClick()
 
