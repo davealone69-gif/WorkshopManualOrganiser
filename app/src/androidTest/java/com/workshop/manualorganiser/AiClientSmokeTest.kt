@@ -8,7 +8,7 @@ import org.junit.Test
 class AiClientSmokeTest {
     @Test
     fun realOllamaRoundTripWorksWhenCiEndpointIsConfigured() = runBlocking {
-        assertTrue("CI must configure the real emulator-to-host Ollama endpoint", BuildConfig.AI_ENDPOINT.contains("10.0.2.2"))
+        assertTrue("CI must configure the real emulator-to-host Ollama endpoint", BuildConfig.AI_ENDPOINT.contains("127.0.0.1"))
 
         val status = AiClient.checkServer().getOrThrow()
         assertTrue(status.contains(AiClient.model))
