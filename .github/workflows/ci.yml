@@ -84,7 +84,9 @@ jobs:
           pre-emulator-launch-script: adb kill-server || true; adb start-server
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot -no-snapshot-save
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest -Pai.endpoint=http://10.0.2.2:11434/api/chat -Pai.model=llama3.2:1b --stacktrace
+          script: |
+            adb reverse tcp:11434 tcp:11434
+            ./gradlew connectedDebugAndroidTest -Pai.endpoint=http://127.0.0.1:11434/api/chat -Pai.model=llama3.2:1b --stacktrace
       - name: Upload instrumentation reports
         if: always()
         uses: actions/upload-artifact@v4
