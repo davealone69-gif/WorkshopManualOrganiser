@@ -68,6 +68,7 @@ fun HomeScreen(
     onUpload: () -> Unit,
     onOpenDestination: (Destination) -> Unit,
 ) {
+    val addManualLabel = stringResource(R.string.home_add)
     val manuals by viewModel.manuals.collectAsStateWithLifecycle()
     val loaded by viewModel.loaded.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
@@ -175,7 +176,7 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(20.dp)
-                .semantics { contentDescription = stringResource(R.string.home_add) },
+                .semantics { contentDescription = addManualLabel },
         )
     }
 
