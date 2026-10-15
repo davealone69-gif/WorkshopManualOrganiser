@@ -24,12 +24,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.workshop.manualorganiser.R
 import com.workshop.manualorganiser.util.AiClient
 import com.workshop.manualorganiser.util.KnowledgeBase
+import com.workshop.manualorganiser.util.LocalServerManager
 import kotlinx.coroutines.launch
 
 @Composable
@@ -38,6 +40,7 @@ fun AiHelpScreen(
     onOpenDestination: (Destination) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var query by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<KnowledgeBase.Article>>(emptyList()) }
     var searched by remember { mutableStateOf(false) }
@@ -86,20 +89,32 @@ fun AiHelpScreen(
                     Text(if (AiClient.isConfigured) AiClient.backendName else stringResource(R.string.aihelp_offline_badge))
                 }
                 if (AiClient.isConfigured) {
+                    val localOllama = AiClient.endpoint.contains("127.0.0.1:11434") ||
+                        AiClient.endpoint.contains("localhost:11434")
                     Button(
                         enabled = !checkingServer,
                         onClick = {
                             checkingServer = true
                             serverStatus = null
                             scope.launch {
-                                AiClient.checkServer().fold(
+                                val result = if (localOllama) {
+                                    LocalServerManager.ensureOllama(context)
+                                } else {
+                                    AiClient.checkServer()
+                                }
+                                result.fold(
                                     onSuccess = { serverStatus = it },
                                     onFailure = { serverStatus = "ERROR:" + (it.message ?: "unknown error") },
                                 )
                                 checkingServer = false
                             }
                         },
-                    ) { Text(stringResource(R.string.aihelp_check_server)) }
+                    ) {
+                        Text(
+                            if (localOllama) "Start / check local Ollama"
+                            else stringResource(R.string.aihelp_check_server),
+                        )
+                    }
                 }
             }
 
