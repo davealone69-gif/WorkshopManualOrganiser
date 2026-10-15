@@ -3,6 +3,7 @@ package com.workshop.manualorganiser.util
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import kotlinx.coroutines.delay
 
 /**
@@ -58,6 +59,16 @@ object LocalServerManager {
         command: String,
         args: List<String>,
     ): Result<Unit> = runCatching {
+        val installed = runCatching {
+            context.packageManager.getPackageInfo(TERMUX_PACKAGE, 0)
+            true
+        }.getOrDefault(false)
+        check(installed) { "Termux is not installed." }
+        check(
+            context.checkSelfPermission(RUN_COMMAND_PERMISSION) == PackageManager.PERMISSION_GRANTED,
+        ) {
+            "RUN_COMMAND permission is not granted. Grant it to Workshop Manual Organiser and enable allow-external-apps=true in Termux."
+        }
         val intent = Intent(RUN_COMMAND_ACTION).apply {
             component = ComponentName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
             putExtra("com.termux.RUN_COMMAND_PATH", command)
@@ -65,6 +76,9 @@ object LocalServerManager {
             putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home")
         }
-        context.startService(intent)
+        val dispatched = context.startService(intent)
+        check(dispatched != null) {
+            "Android did not dispatch the Termux RUN_COMMAND service. Check Termux version and RUN_COMMAND settings."
+        }
     }
 }
