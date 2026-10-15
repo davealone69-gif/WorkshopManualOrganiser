@@ -15,7 +15,7 @@ val keystoreProperties = Properties().apply {
 
 // Optional AI configuration, kept out of source control.
 // Provide with -Pai.endpoint=... -Pai.apiKey=... or in gradle.properties.
-val aiEndpoint: String = (project.findProperty("ai.endpoint") as String?) ?: "http://127.0.0.1:11434/api/chat"
+val aiEndpoint: String = (project.findProperty("ai.endpoint") as String?) ?: ""
 val aiApiKey: String = (project.findProperty("ai.apiKey") as String?) ?: ""
 val aiModel: String = (project.findProperty("ai.model") as String?) ?: "llama3.2:1b"
 // Hermes Agent API server is OpenAI-compatible. Keep the key out of source control.
