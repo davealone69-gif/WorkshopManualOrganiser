@@ -1,0 +1,29 @@
+name: Semgrep Static Analysis
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "23 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: Semgrep scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Scan source
+        env:
+          SEMGREP_SEND_METRICS: "off"
+        # Explicit rules avoid Semgrep's auto-config metrics requirement and need no account token.
+        run: semgrep scan --config p/security-audit --error --verbose

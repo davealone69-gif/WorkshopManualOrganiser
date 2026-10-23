@@ -1,0 +1,28 @@
+language: en-US
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_instructions:
+    - path: "app/src/**/*.kt"
+      instructions: >
+        Check Android lifecycle correctness, Compose state and recomposition,
+        coroutine cancellation, file/URI handling, persistence durability,
+        input validation, accessibility, offline behavior, and whether UI
+        actions have real implementations. Flag claims of AI behavior that
+        are only keyword/rule-based. Do not request network dependencies for
+        features intended to work offline.
+    - path: ".github/workflows/**"
+      instructions: >
+        Check least-privilege permissions, pinned or maintained actions,
+        reliable SDK/JDK setup, emulator boot and test timeouts, artifact
+        retention, secret exposure, and whether failure paths fail the job.
+    - path: "app/build.gradle.kts"
+      instructions: >
+        Check release signing enforcement, secret handling, minification,
+        resource shrinking, dependency versions, and debug/release behavior.
+chat:
+  auto_reply: false
