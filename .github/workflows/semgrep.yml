@@ -11,7 +11,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   semgrep:
@@ -26,4 +25,5 @@ jobs:
       - name: Scan source
         env:
           SEMGREP_SEND_METRICS: "off"
-        run: semgrep scan --config auto --error --verbose
+        # Explicit rules avoid Semgrep's auto-config metrics requirement and need no account token.
+        run: semgrep scan --config p/security-audit --error --verbose
